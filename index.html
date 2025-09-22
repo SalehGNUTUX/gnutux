@@ -1,150 +1,217 @@
-import React, { useEffect, useState } from 'react';
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>مشاريع GNUTUX الرسمية / Official GNUTUX Projects</title>
+  <style>
+    :root{
+      --bg:#ffffff; --surface:#f5f5f7; --text:#0f1720; --muted:#6b7280; --accent:#2563eb;
+    }
+    [data-theme="dark"]{ --bg:#0b1220; --surface:#0f1720; --text:#eef2ff; --muted:#94a3b8; --accent:#60a5fa; }
 
-// Default export a React component (single-file). Tailwind CSS assumed available.
-// Features:
-// - Arabic / English bilingual content (ltr/rtl handled)
-// - Dark / Light mode (prefers-color-scheme + toggle)
-// - Automatically fetches public repos from GitHub and filters out forks
-// - Only shows "official" (non-fork) repositories
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;}
+    body{background:var(--bg);color:var(--text);}
+    .container{max-width:1000px;margin:32px auto;padding:20px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .controls{display:flex;gap:8px}
+    button{background:transparent;border:1px solid var(--surface);padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--text)}
+    .card-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}
+    @media(min-width:760px){.card-grid{grid-template-columns:1fr 1fr}}
+    .card{background:var(--surface);padding:14px;border-radius:12px;border:1px solid rgba(0,0,0,0.04)}
+    .repo-title{font-weight:600;margin:0}
+    .repo-desc{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .meta{margin-top:10px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+    a.link{padding:8px 10px;border-radius:8px;border:1px solid var(--surface);text-decoration:none;color:var(--accent);font-weight:600}
+    .muted{color:var(--muted);font-size:12px}
+    footer{text-align:center;margin-top:28px;color:var(--muted);font-size:12px}
+    .row{display:flex;gap:10px;align-items:center}
 
-export default function GnutuxPortfolio() {
-  const [lang, setLang] = useState('ar'); // 'ar' or 'en'
-  const [dark, setDark] = useState(() => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const [repos, setRepos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    /* small loading / error */
+    .panel{padding:14px;border-radius:10px;background:var(--surface);color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <header>
+      <div>
+        <h1 id="title">مشاريع GNUTUX الرسمية</h1>
+        <p class="lead" id="subtitle">قائمة المشاريع الرسمية في مستودعي GitHub — لا تشمل المشاريع المنشقّة أو المُشتقّة</p>
+      </div>
 
-  useEffect(() => {
-    document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  }, [lang]);
+      <div class="controls row">
+        <button id="langBtn" aria-label="تبديل اللغة">English</button>
+        <button id="themeBtn" aria-label="تبديل الوضع">الوضع المظلم</button>
+      </div>
+    </header>
 
-  useEffect(() => {
-    if (dark) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  }, [dark]);
+    <main>
+      <section id="content">
+        <div id="status" class="panel">جارٍ التحميل...</div>
 
-  useEffect(() => {
-    // Fetch public repos and filter out forks
-    const url = 'https://api.github.com/users/SalehGNUTUX/repos?per_page=100';
-    setLoading(true);
-    fetch(url)
-      .then((r) => {
-        if (!r.ok) throw new Error('GitHub API error: ' + r.status);
-        return r.json();
-      })
-      .then((data) => {
-        // Filter: only non-forks, sort by updated_at desc
-        const official = data
-          .filter((r) => !r.fork)
-          .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-        setRepos(official);
-        setLoading(false);
-      })
-      .catch((e) => {
-        setError(e.message);
-        setLoading(false);
-      });
-  }, []);
+        <div id="repos" class="card-grid" style="display:none"></div>
+      </section>
 
-  const t = {
-    ar: {
-      title: 'مشاريع GNUTUX الرسمية',
-      subtitle: 'قائمة المشاريع الرسمية في مستودعي GitHub — لا تشمل المشاريع المنشقّة أو المُشتقّة',
-      visit: 'زيارة',
-      language: 'English',
-      darkToggle: 'الوضع المظلم',
-      updated: 'آخر تحديث',
-      description: 'الوصف',
-      openRepo: 'فتح المستودع',
-      loading: 'جارٍ التحميل...',
-      noRepos: 'لم يتم العثور على مشاريع رسمية عامة.',
-    },
-    en: {
-      title: 'Official GNUTUX Projects',
-      subtitle: 'Listing official public projects from my GitHub — excluding forks and derived repos',
-      visit: 'Visit',
-      language: 'العربية',
-      darkToggle: 'Dark mode',
-      updated: 'Updated',
-      description: 'Description',
-      openRepo: 'Open repo',
-      loading: 'Loading...',
-      noRepos: 'No official public projects found.',
-    },
-  };
+      <footer id="footer">مصدر البيانات: حساب GitHub العام. الموقع يعرض فقط المستودعات العامة غير المعدّدة (non-fork).</footer>
+    </main>
+  </div>
 
-  const locale = t[lang];
+  <script>
+    // --- Configuration ---
+    const GITHUB_USER = 'SalehGNUTUX';
+    const PER_PAGE = 100;
 
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
-      <header className="max-w-5xl mx-auto p-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{locale.title}</h1>
-          <p className="text-sm opacity-80">{locale.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setLang((s) => (s === 'ar' ? 'en' : 'ar'))}
-            className="px-3 py-2 border rounded-md"
-            aria-label="toggle language"
-          >
-            {locale.language}
-          </button>
-          <button
-            onClick={() => setDark((d) => !d)}
-            className="px-3 py-2 border rounded-md"
-            aria-label="toggle dark"
-          >
-            {locale.darkToggle}
-          </button>
-        </div>
-      </header>
+    // --- i18n strings ---
+    const T = {
+      ar: {
+        title: 'مشاريع GNUTUX الرسمية',
+        subtitle: 'قائمة المشاريع الرسمية في مستودعي GitHub — لا تشمل المشاريع المنشقّة أو المُشتقّة',
+        visit: 'زيارة',
+        languageBtn: 'English',
+        darkBtn: 'الوضع المظلم',
+        loading: 'جارٍ التحميل...',
+        noRepos: 'لم يتم العثور على مشاريع رسمية عامة.',
+        error: 'حدث خطأ أثناء جلب المستودعات.'
+      },
+      en: {
+        title: 'Official GNUTUX Projects',
+        subtitle: 'Listing official public projects from my GitHub — excluding forks and derived repos',
+        visit: 'Visit',
+        languageBtn: 'العربية',
+        darkBtn: 'Dark mode',
+        loading: 'Loading...',
+        noRepos: 'No official public projects found.',
+        error: 'Failed to fetch repositories.'
+      }
+    };
 
-      <main className="max-w-5xl mx-auto p-6">
-        <section className="grid gap-6">
-          {loading ? (
-            <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-md">{locale.loading}</div>
-          ) : error ? (
-            <div className="p-6 bg-red-100 text-red-800 rounded-md">{error}</div>
-          ) : repos.length === 0 ? (
-            <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-md">{locale.noRepos}</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {repos.map((r) => (
-                <article key={r.id} className="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-lg font-semibold">{r.name}</h3>
-                      {r.description && <p className="text-sm mt-1 opacity-80">{r.description}</p>}
-                      <p className="text-xs mt-2 opacity-70">{locale.updated}: {new Date(r.updated_at).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <a
-                        href={r.html_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-2 rounded-md border"
-                      >
-                        {locale.openRepo}
-                      </a>
-                      <small className="text-xs opacity-70">{r.language || '—'}</small>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+    // --- State ---
+    let lang = localStorage.getItem('site-lang') || 'ar';
+    let theme = localStorage.getItem('site-theme') || (matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
-        <footer className="mt-10 text-center text-xs opacity-70">
-          <p>
-            {lang === 'ar'
-              ? 'مصدر البيانات: حساب GitHub العام الخاص بك. الموقع يعرض فقط المستودعات العامة غير المعدّدة (non-fork).'
-              : 'Data source: your public GitHub account. The site shows only non-fork public repositories.'}
-          </p>
-        </footer>
-      </main>
-    </div>
-  );
-}
+    // --- DOM ---
+    const titleEl = document.getElementById('title');
+    const subtitleEl = document.getElementById('subtitle');
+    const langBtn = document.getElementById('langBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const statusEl = document.getElementById('status');
+    const reposEl = document.getElementById('repos');
+    const footerEl = document.getElementById('footer');
+
+    // --- Helpers ---
+    function applyLang() {
+      const s = T[lang];
+      document.documentElement.lang = (lang === 'ar') ? 'ar' : 'en';
+      document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+      titleEl.textContent = s.title;
+      subtitleEl.textContent = s.subtitle;
+      langBtn.textContent = s.languageBtn;
+      themeBtn.textContent = s.darkBtn;
+      statusEl.textContent = s.loading;
+      footerEl.textContent = (lang === 'ar') ? 'مصدر البيانات: حساب GitHub العام. الموقع يعرض فقط المستودعات العامة غير المعدّدة (non-fork).' : 'Data source: public GitHub account. The site shows only non-fork public repositories.';
+    }
+
+    function applyTheme() {
+      if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+      else document.documentElement.removeAttribute('data-theme');
+    }
+
+    async function fetchRepos() {
+      statusEl.style.display = 'block';
+      reposEl.style.display = 'none';
+      statusEl.textContent = T[lang].loading;
+
+      try {
+        const res = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=${PER_PAGE}`);
+        if (!res.ok) throw new Error('GitHub API error: ' + res.status);
+        const data = await res.json();
+        // filter out forks and sort by updated
+        const official = data.filter(r => !r.fork).sort((a,b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+        if (!official || official.length === 0) {
+          statusEl.textContent = T[lang].noRepos;
+          return;
+        }
+
+        // render
+        reposEl.innerHTML = '';
+        for (const r of official) {
+          const card = document.createElement('article');
+          card.className = 'card';
+
+          const title = document.createElement('h3');
+          title.className = 'repo-title';
+          title.textContent = r.name;
+
+          const desc = document.createElement('div');
+          desc.className = 'repo-desc';
+          desc.textContent = r.description || '';
+
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+
+          const left = document.createElement('div');
+          left.appendChild(title);
+          if (r.description) left.appendChild(desc);
+          const updated = document.createElement('div');
+          updated.className = 'muted';
+          const d = new Date(r.updated_at);
+          updated.textContent = (lang === 'ar' ? 'آخر تحديث: ' : 'Updated: ') + d.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US');
+          left.appendChild(updated);
+
+          const right = document.createElement('div');
+          right.style.textAlign = (lang === 'ar') ? 'left' : 'right';
+
+          const link = document.createElement('a');
+          link.className = 'link';
+          link.href = r.html_url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = (lang === 'ar' ? T.ar.visit : T.en.visit);
+
+          const langSmall = document.createElement('div');
+          langSmall.className = 'muted';
+          langSmall.textContent = r.language || '—';
+
+          right.appendChild(link);
+          right.appendChild(langSmall);
+
+          meta.appendChild(left);
+          meta.appendChild(right);
+
+          card.appendChild(meta);
+          reposEl.appendChild(card);
+        }
+
+        statusEl.style.display = 'none';
+        reposEl.style.display = 'grid';
+
+      } catch (e) {
+        statusEl.textContent = (lang === 'ar' ? T.ar.error : T.en.error) + ' ' + (e.message || '');
+      }
+    }
+
+    // --- Events ---
+    langBtn.addEventListener('click', () => {
+      lang = (lang === 'ar') ? 'en' : 'ar';
+      localStorage.setItem('site-lang', lang);
+      applyLang();
+      fetchRepos(); // re-render dates / labels
+    });
+
+    themeBtn.addEventListener('click', () => {
+      theme = (theme === 'dark') ? 'light' : 'dark';
+      localStorage.setItem('site-theme', theme);
+      applyTheme();
+    });
+
+    // --- Init ---
+    applyLang();
+    applyTheme();
+    fetchRepos();
+  </script>
+</body>
+</html>
