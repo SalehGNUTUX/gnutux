@@ -1,0 +1,150 @@
+import React, { useEffect, useState } from 'react';
+
+// Default export a React component (single-file). Tailwind CSS assumed available.
+// Features:
+// - Arabic / English bilingual content (ltr/rtl handled)
+// - Dark / Light mode (prefers-color-scheme + toggle)
+// - Automatically fetches public repos from GitHub and filters out forks
+// - Only shows "official" (non-fork) repositories
+
+export default function GnutuxPortfolio() {
+  const [lang, setLang] = useState('ar'); // 'ar' or 'en'
+  const [dark, setDark] = useState(() => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const [repos, setRepos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  useEffect(() => {
+    if (dark) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [dark]);
+
+  useEffect(() => {
+    // Fetch public repos and filter out forks
+    const url = 'https://api.github.com/users/SalehGNUTUX/repos?per_page=100';
+    setLoading(true);
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error('GitHub API error: ' + r.status);
+        return r.json();
+      })
+      .then((data) => {
+        // Filter: only non-forks, sort by updated_at desc
+        const official = data
+          .filter((r) => !r.fork)
+          .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        setRepos(official);
+        setLoading(false);
+      })
+      .catch((e) => {
+        setError(e.message);
+        setLoading(false);
+      });
+  }, []);
+
+  const t = {
+    ar: {
+      title: 'مشاريع GNUTUX الرسمية',
+      subtitle: 'قائمة المشاريع الرسمية في مستودعي GitHub — لا تشمل المشاريع المنشقّة أو المُشتقّة',
+      visit: 'زيارة',
+      language: 'English',
+      darkToggle: 'الوضع المظلم',
+      updated: 'آخر تحديث',
+      description: 'الوصف',
+      openRepo: 'فتح المستودع',
+      loading: 'جارٍ التحميل...',
+      noRepos: 'لم يتم العثور على مشاريع رسمية عامة.',
+    },
+    en: {
+      title: 'Official GNUTUX Projects',
+      subtitle: 'Listing official public projects from my GitHub — excluding forks and derived repos',
+      visit: 'Visit',
+      language: 'العربية',
+      darkToggle: 'Dark mode',
+      updated: 'Updated',
+      description: 'Description',
+      openRepo: 'Open repo',
+      loading: 'Loading...',
+      noRepos: 'No official public projects found.',
+    },
+  };
+
+  const locale = t[lang];
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+      <header className="max-w-5xl mx-auto p-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{locale.title}</h1>
+          <p className="text-sm opacity-80">{locale.subtitle}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setLang((s) => (s === 'ar' ? 'en' : 'ar'))}
+            className="px-3 py-2 border rounded-md"
+            aria-label="toggle language"
+          >
+            {locale.language}
+          </button>
+          <button
+            onClick={() => setDark((d) => !d)}
+            className="px-3 py-2 border rounded-md"
+            aria-label="toggle dark"
+          >
+            {locale.darkToggle}
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto p-6">
+        <section className="grid gap-6">
+          {loading ? (
+            <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-md">{locale.loading}</div>
+          ) : error ? (
+            <div className="p-6 bg-red-100 text-red-800 rounded-md">{error}</div>
+          ) : repos.length === 0 ? (
+            <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-md">{locale.noRepos}</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {repos.map((r) => (
+                <article key={r.id} className="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold">{r.name}</h3>
+                      {r.description && <p className="text-sm mt-1 opacity-80">{r.description}</p>}
+                      <p className="text-xs mt-2 opacity-70">{locale.updated}: {new Date(r.updated_at).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <a
+                        href={r.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 rounded-md border"
+                      >
+                        {locale.openRepo}
+                      </a>
+                      <small className="text-xs opacity-70">{r.language || '—'}</small>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <footer className="mt-10 text-center text-xs opacity-70">
+          <p>
+            {lang === 'ar'
+              ? 'مصدر البيانات: حساب GitHub العام الخاص بك. الموقع يعرض فقط المستودعات العامة غير المعدّدة (non-fork).'
+              : 'Data source: your public GitHub account. The site shows only non-fork public repositories.'}
+          </p>
+        </footer>
+      </main>
+    </div>
+  );
+}
