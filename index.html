@@ -71,6 +71,10 @@
       line-height: 1.6;
     }
 
+    body.modal-open {
+      overflow: hidden;
+    }
+
     header {
       display: flex;
       justify-content: space-between;
@@ -298,33 +302,170 @@
       transform: scale(1.02);
     }
 
-    .readme-content {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: var(--bg);
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      font-size: 0.95rem;
-      line-height: 1.7;
-      max-height: 250px;
-      overflow-y: auto;
+    /* نافذة README الموسعة */
+    .readme-overlay {
       display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.25s ease;
+    }
+
+    .readme-overlay.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .readme-modal {
+      background-color: var(--card-bg);
+      color: var(--text);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 900px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      animation: slideUp 0.3s ease;
+      border: 1px solid var(--border);
+    }
+
+    .readme-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background-color: var(--header-bg);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .readme-modal-header h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .readme-modal-header h2 i {
+      color: var(--secondary);
+    }
+
+    .readme-modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+      line-height: 1.8;
+      font-size: 1rem;
       word-break: break-word;
-      text-align: left;
-      direction: ltr;
+      direction: rtl;
+      text-align: right;
       font-family: var(--font-family);
     }
 
-    .readme-content img {
-      max-width: 100%;
-      height: auto;
+    /* دعم النصوص العربية داخل النافذة الموسعة */
+    .readme-modal-body h1,
+    .readme-modal-body h2,
+    .readme-modal-body h3,
+    .readme-modal-body h4,
+    .readme-modal-body h5,
+    .readme-modal-body h6,
+    .readme-modal-body p,
+    .readme-modal-body li,
+    .readme-modal-body td,
+    .readme-modal-body th,
+    .readme-modal-body blockquote {
+      direction: rtl;
+      text-align: right;
     }
 
-    .readme-content pre {
-      background: var(--header-bg);
-      padding: 0.8rem;
-      border-radius: 6px;
+    .readme-modal-body pre,
+    .readme-modal-body code {
+      direction: ltr;
+      text-align: left;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    .readme-modal-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .readme-modal-body pre {
+      background: var(--bg);
+      padding: 1rem;
+      border-radius: 8px;
       overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    .readme-modal-body code {
+      background: var(--bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .readme-modal-body pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    .readme-modal-body a {
+      color: var(--secondary);
+      text-decoration: underline;
+      transition: var(--transition);
+    }
+
+    .readme-modal-body a:hover {
+      color: var(--accent);
+    }
+
+    .close-modal-btn {
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: var(--secondary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: var(--transition);
+      z-index: 10;
+    }
+
+    .close-modal-btn:hover {
+      background-color: #e53e3e;
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 0 6px 16px rgba(229, 62, 62, 0.4);
     }
 
     .loading, .error {
@@ -374,6 +515,29 @@
         width: 100%;
         justify-content: center;
       }
+
+      .readme-modal {
+        max-height: 90vh;
+        max-width: 100%;
+      }
+
+      .close-modal-btn {
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+        position: fixed;
+        background-color: #e53e3e;
+      }
+
+      .readme-modal-header {
+        padding: 1rem;
+      }
+
+      .readme-modal-body {
+        padding: 1rem;
+      }
     }
 
     @media (max-width: 480px) {
@@ -389,6 +553,24 @@
   </style>
 </head>
 <body>
+  <!-- نافذة README الموسعة -->
+  <div class="readme-overlay" id="readmeOverlay">
+    <div class="readme-modal">
+      <button class="close-modal-btn" id="closeModalBtn" title="إغلاق">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="readme-modal-header">
+        <h2 id="modalTitle">
+          <i class="fas fa-book-open"></i>
+          <span id="modalRepoName"></span>
+        </h2>
+      </div>
+      <div class="readme-modal-body" id="readmeModalBody">
+        <p style="text-align:center"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المعلومات...</p>
+      </div>
+    </div>
+  </div>
+
   <header>
     <div class="logo">
       <img src="https://avatars.githubusercontent.com/u/10298253?v=4&size=64" alt="GitHub Logo" onclick="window.location.reload();" title="انقر لتحديث الصفحة">
@@ -426,12 +608,48 @@
     const pageTitle = document.getElementById('page-title');
     const footerText = document.getElementById('footer-text');
 
+    // عناصر النافذة الموسعة
+    const readmeOverlay = document.getElementById('readmeOverlay');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const readmeModalBody = document.getElementById('readmeModalBody');
+    const modalRepoName = document.getElementById('modalRepoName');
+
     let currentLang = localStorage.getItem('lang') || 'ar';
     let currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
     document.body.classList.toggle('dark', currentTheme === 'dark');
     updateThemeIcon();
     updateTexts();
+
+    // إغلاق النافذة الموسعة
+    closeModalBtn.addEventListener('click', closeModal);
+    readmeOverlay.addEventListener('click', (e) => {
+      if (e.target === readmeOverlay) {
+        closeModal();
+      }
+    });
+
+    // إغلاق النافذة بزر Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && readmeOverlay.classList.contains('active')) {
+        closeModal();
+      }
+    });
+
+    function closeModal() {
+      readmeOverlay.classList.remove('active');
+      document.body.classList.remove('modal-open');
+      readmeModalBody.innerHTML = '';
+    }
+
+    // دالة لجعل جميع الروابط في عنصر معين تفتح في تبويب جديد
+    function makeLinksOpenInNewTab(container) {
+      const links = container.querySelectorAll('a');
+      links.forEach(link => {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+    }
 
     langToggle.addEventListener('click', () => {
       currentLang = currentLang === 'ar' ? 'en' : 'ar';
@@ -463,14 +681,14 @@
         langToggle.querySelector('span').textContent = 'EN';
         siteTitle.textContent = 'مشاريع GNUTUX';
         pageTitle.textContent = 'مشاريع GNUTUX';
-        footerText.textContent = 'جميع الحقوق محفوظة © 2025 مشاريع GNUTUX';
+        footerText.textContent = 'جميع الحقوق محفوظة © 2026 مشاريع GNUTUX';
       } else {
         document.documentElement.lang = 'en';
         document.documentElement.dir = 'ltr';
         langToggle.querySelector('span').textContent = 'عربي';
         siteTitle.textContent = 'GNUTUX Projects';
         pageTitle.textContent = 'GNUTUX Projects';
-        footerText.textContent = 'All rights reserved © 2025 GNUTUX Projects';
+        footerText.textContent = 'All rights reserved © 2026 GNUTUX Projects';
       }
       fetchRepos();
     }
@@ -513,7 +731,7 @@
               <i class="fas fa-code fallback-icon" style="display:none;"></i>
             </div>
             <h3>
-              <a href="${repo.html_url}" target="_blank">
+              <a href="${repo.html_url}" target="_blank" rel="noopener noreferrer">
                 ${repo.name}
                 <i class="fas fa-external-link-alt"></i>
               </a>
@@ -524,16 +742,15 @@
               <span><i class="fas fa-clock"></i> ${new Date(repo.updated_at).toLocaleDateString(currentLang)}</span>
             </div>
             <button class="toggle-readme" data-repo="${repo.name}">
-              <i class="fas fa-chevron-down"></i>
+              <i class="fas fa-book-open"></i>
               <span>${currentLang === 'ar' ? 'عرض المزيد' : 'Show more'}</span>
             </button>
-            <div class="readme-content"></div>
           `;
           reposContainer.appendChild(card);
         });
 
         document.querySelectorAll('.toggle-readme').forEach(button => {
-          button.addEventListener('click', toggleReadme);
+          button.addEventListener('click', openReadmeModal);
         });
 
       } catch (error) {
@@ -544,29 +761,16 @@
       }
     }
 
-    async function toggleReadme(event) {
+    async function openReadmeModal(event) {
       const button = event.currentTarget;
       const repoName = button.dataset.repo;
-      const readmeDiv = button.nextElementSibling;
-      const icon = button.querySelector('i');
-      const spanText = button.querySelector('span');
 
-      const isVisible = readmeDiv.style.display === 'block';
+      // فتح النافذة الموسعة
+      readmeOverlay.classList.add('active');
+      document.body.classList.add('modal-open');
+      modalRepoName.textContent = repoName;
 
-      if (isVisible) {
-        readmeDiv.style.display = 'none';
-        icon.className = 'fas fa-chevron-down';
-        spanText.textContent = currentLang === 'ar' ? 'عرض المزيد' : 'Show more';
-        return;
-      }
-
-      readmeDiv.style.display = 'block';
-      icon.className = 'fas fa-chevron-up';
-      spanText.textContent = currentLang === 'ar' ? 'إخفاء' : 'Hide';
-
-      if (readmeDiv.dataset.loaded === 'true') return;
-
-      readmeDiv.innerHTML = currentLang === 'ar'
+      readmeModalBody.innerHTML = currentLang === 'ar'
         ? '<p style="text-align:center"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المعلومات...</p>'
         : '<p style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Loading README...</p>';
 
@@ -586,14 +790,15 @@
         const rawContent = new TextDecoder('utf-8').decode(bytes);
 
         const htmlContent = marked.parse(rawContent);
-        readmeDiv.innerHTML = htmlContent;
-        readmeDiv.dataset.loaded = 'true';
+        readmeModalBody.innerHTML = htmlContent;
+
+        // جعل جميع الروابط في المحتوى تفتح في تبويب جديد
+        makeLinksOpenInNewTab(readmeModalBody);
       } catch (error) {
         console.error(`Failed to load README for ${repoName}:`, error);
-        readmeDiv.innerHTML = currentLang === 'ar'
+        readmeModalBody.innerHTML = currentLang === 'ar'
           ? '<p style="text-align:center; opacity:0.7">⚠️ لا يتوفر ملف توضيحي لهذا المشروع</p>'
           : '<p style="text-align:center; opacity:0.7">⚠️ No README available for this project.</p>';
-        readmeDiv.dataset.loaded = 'true';
       }
     }
 
